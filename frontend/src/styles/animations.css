@@ -1,0 +1,24 @@
+@keyframes page-in { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes skeleton-shimmer { to { background-position: -220% 0 } }
+@keyframes drift-fill { from { transform: scaleX(0); transform-origin: left } to { transform: scaleX(1); transform-origin: left } }
+@keyframes alert-shake { 0%, 100% { transform: translateX(0) } 25% { transform: translateX(-3px) } 75% { transform: translateX(3px) } }
+@keyframes shockwave { from { opacity: .8; transform: scale(.55) } to { opacity: 0; transform: scale(1.5) } }
+@keyframes score-scan { from { transform: translateY(-100%) } to { transform: translateY(220%) } }
+@keyframes orb-breathe { 50% { transform: scale(1.025) } }
+@keyframes button-spin { to { transform: rotate(360deg) } }
+@keyframes progress-sweep { from { transform: scaleX(.18); transform-origin: left } to { transform: scaleX(1); transform-origin: left } }
+
+.page-content { animation: page-in 200ms cubic-bezier(.22, 1, .36, 1) both }
+.panel, .stat-card { transition: transform 200ms cubic-bezier(.22, 1, .36, 1), border-color 200ms ease, box-shadow 200ms ease }
+.panel:hover, .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 12px 36px rgb(0 0 0 / 20%), 0 0 0 1px var(--accent-soft) }
+.drift-track i { transform-origin: left; animation: drift-fill 700ms cubic-bezier(.22, 1, .36, 1) both }
+.skeleton { color: transparent !important; border-radius: 5px; background: linear-gradient(100deg, var(--surface-2) 25%, #28354b 38%, var(--surface-2) 55%); background-size: 220% 100%; animation: skeleton-shimmer 1.2s ease-in-out infinite }
+.spinner { border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: button-spin 700ms ease-in-out infinite }
+.assessment-panel.is-fraud { animation: alert-shake 400ms ease both; box-shadow: var(--glow-danger) }
+.assessment-panel.is-fraud .decision { animation: alert-shake 400ms ease both }
+.risk-orb[data-scoring="true"]::after { content: ""; position: absolute; inset: 13%; border: 1px solid var(--accent); border-radius: 50%; animation: orbit-rotate 2.5s ease-in-out infinite; box-shadow: var(--glow-accent); pointer-events: none }
+.batch-input.is-dragging .upload-zone { border-color: var(--accent); background: var(--accent-soft); box-shadow: var(--glow-accent) }
+.button:active { transform: scale(.98) }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important }
+}

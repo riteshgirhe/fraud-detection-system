@@ -1,0 +1,133 @@
+{
+  "version": "v1",
+  "model": "xgboost",
+  "threshold": 0.99,
+  "threshold_rule": "maximize F2 on validation split",
+  "feature_list": [
+    "step",
+    "type",
+    "amount",
+    "oldbalanceOrg",
+    "newbalanceOrig",
+    "oldbalanceDest",
+    "newbalanceDest"
+  ],
+  "engineered_features": [
+    "step",
+    "amount",
+    "oldbalanceOrg",
+    "newbalanceOrig",
+    "oldbalanceDest",
+    "newbalanceDest",
+    "hour_of_day",
+    "day",
+    "errorBalanceOrig",
+    "errorBalanceDest",
+    "orig_balance_zero_after",
+    "dest_balance_zero_before",
+    "amount_to_balance_ratio",
+    "log_amount",
+    "is_merchant_dest",
+    "type_CASH_IN",
+    "type_CASH_OUT",
+    "type_DEBIT",
+    "type_PAYMENT",
+    "type_TRANSFER"
+  ],
+  "training_date": "2026-10-14T10:51:56.845552+00:00",
+  "metrics": {
+    "threshold": 0.99,
+    "precision": 0.9898086005468556,
+    "recall": 0.9935129740518962,
+    "f1": 0.9916573278545636,
+    "f2": 0.9927698828222389,
+    "pr_auc": 0.9992397180658935,
+    "roc_auc": 0.9999916722739646,
+    "confusion_matrix": {
+      "tn": 950344,
+      "fp": 41,
+      "fn": 26,
+      "tp": 3982
+    },
+    "model": "xgboost",
+    "false_negative_rate": 0.006487025948103792,
+    "expected_cost": 301.0,
+    "cost_assumptions": {
+      "cost_fp": 1.0,
+      "cost_fn": 10.0
+    },
+    "limitations": "PaySim is synthetic; time-based splitting and repeated model selection may still produce optimistic estimates.",
+    "validation": {
+      "threshold": 0.99,
+      "precision": 0.95578231292517,
+      "recall": 1.0,
+      "f1": 0.9773913043478261,
+      "f2": 0.9908321579689704,
+      "pr_auc": 0.9971682145929153,
+      "roc_auc": 0.9999985570457245,
+      "confusion_matrix": {
+        "tn": 953805,
+        "fp": 26,
+        "fn": 0,
+        "tp": 562
+      }
+    },
+    "validation_threshold": 0.99,
+    "training_sample_rows": 33620,
+    "test_rows": 954393,
+    "selected_params": {
+      "classifier__subsample": 0.8,
+      "classifier__scale_pos_weight": 16.4573153993961,
+      "classifier__n_estimators": 150,
+      "classifier__min_child_weight": 3,
+      "classifier__max_depth": 3,
+      "classifier__learning_rate": 0.1,
+      "classifier__gamma": 0.5,
+      "classifier__colsample_bytree": 1.0
+    },
+    "false_negative_analysis": {
+      "count": 26,
+      "mean_amount": 2728924.7738461536,
+      "median_amount": 176937.11,
+      "transaction_types": {
+        "TRANSFER": 13,
+        "CASH_OUT": 13
+      }
+    },
+    "feature_importance": {
+      "step": 0.007966459728777409,
+      "amount": 0.022731538861989975,
+      "oldbalanceOrg": 0.004100232385098934,
+      "newbalanceOrig": 0.0023040312808007,
+      "oldbalanceDest": 0.005230248905718327,
+      "newbalanceDest": 0.008789164945483208,
+      "hour_of_day": 0.00455020135268569,
+      "day": 0.0,
+      "errorBalanceOrig": 0.4289610981941223,
+      "errorBalanceDest": 0.007951430045068264,
+      "orig_balance_zero_after": 0.43533262610435486,
+      "dest_balance_zero_before": 0.0014011455932632089,
+      "amount_to_balance_ratio": 0.01746388152241707,
+      "log_amount": 0.0,
+      "is_merchant_dest": 0.0243784561753273,
+      "type_CASH_IN": 0.010777241550385952,
+      "type_CASH_OUT": 0.011438176967203617,
+      "type_DEBIT": 0.0,
+      "type_PAYMENT": 0.0,
+      "type_TRANSFER": 0.006623979192227125
+    }
+  },
+  "dataset_hash": "16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b",
+  "library_versions": {
+    "pandas": "2.2.3",
+    "numpy": "2.2.6",
+    "scikit_learn": "1.6.1",
+    "xgboost": "3.4.1",
+    "joblib": "1.5.2"
+  },
+  "model_size_bytes": 178543,
+  "training_sample_rows": 33620,
+  "reference_sample_rows": 5000,
+  "merchant_feature_note": "The API schema does not carry nameDest, so is_merchant_dest defaults to 0 at inference.",
+  "round_trip_verified_rows": 100
+}

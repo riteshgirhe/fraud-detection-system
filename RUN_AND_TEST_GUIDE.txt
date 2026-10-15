@@ -1,0 +1,249 @@
+FRAUD DETECTION APP - RUN AND TEST GUIDE
+========================================
+
+PROJECT DOCUMENTATION
+=====================
+
+1. PROBLEM STATEMENT: FRAUD AND CLASS IMBALANCE
+-----------------------------------------------
+Payment fraud detection helps identify suspicious transactions early enough to
+review, block, or investigate them. A useful system must distinguish unusual
+fraudulent behavior from the much larger volume of legitimate activity while
+keeping both missed fraud (false negatives) and unnecessary alerts (false
+positives) in view.
+
+Fraud labels are rare in real payment data: most transactions are legitimate.
+The local PaySim dataset contains 8,213 fraud transactions out of 6,362,620,
+or about 0.1291%. A model that always predicts "legitimate" would therefore
+appear 99.87% accurate while detecting no fraud at all. Accuracy alone is not
+a useful measure for this task. This project compares precision-recall behavior,
+uses class-weighting and resampling experiments, and selects an operating
+threshold on validation data.
+
+
+2. SYSTEM ARCHITECTURE
+----------------------
+
+  User
+   |
+   v
+  React dashboard (six views; Three.js risk visualization)
+   |
+   | HTTP/JSON
+   v
+  FastAPI service
+   |                    \
+   | validated inputs    \ request/latency counters,
+   v                      \ PSI/KS drift and feedback metrics
+  Production pipeline      v
+  (preprocessing +       Monitoring endpoints and dashboard
+   XGBoost model)
+   |
+   v
+  Fraud probability compared with threshold 0.995
+   |
+   +----> Decision returned to React
+   |
+   +----> Prediction and optional later true label stored in JSONL
+
+The frontend supports individual and CSV batch scoring, history, monitoring,
+and production model details. FastAPI validates transaction fields before
+inference and returns the score, decision, model version, timestamp, and
+latency. Operational request counters are held in process memory; prediction
+records are persisted to data/predictions/predictions.jsonl.
+
+
+3. DATASET
+----------
+Dataset: PaySim synthetic mobile-money transaction data. The project operates
+on the local file data/raw/raw_data.csv. PaySim is a simulator-generated
+dataset; the original PaySim work is described by Lopez-Rojas, Elmir, and
+Axelsson, "PaySim: A financial mobile money simulator for fraud detection"
+(2016). Confirm the specific download/distribution when citing a dataset copy;
+this project does not record a download URL.
+
+Rows:                  6,362,620
+Fraud transactions:        8,213 (0.1291%)
+Legitimate transactions: 6,354,407 (99.8709%)
+Fraud-to-legitimate ratio: approximately 1 to 773
+
+Raw columns:
+  step              Simulation time step (hour index)
+  type              Transaction category
+  amount            Transaction amount
+  nameOrig          Origin account identifier
+  oldbalanceOrg     Origin balance before transaction
+  newbalanceOrig    Origin balance after transaction
+  nameDest          Destination account identifier
+  oldbalanceDest    Destination balance before transaction
+  newbalanceDest    Destination balance after transaction
+  isFraud           Fraud target label (not accepted by inference API)
+  isFlaggedFraud    Dataset-provided flag
+
+The serving API accepts seven fields: step, type, amount, oldbalanceOrg,
+newbalanceOrig, oldbalanceDest, and newbalanceDest. Account IDs and target
+labels are not accepted. The selected model excludes nameDest-derived features
+so training and API inference use the same available inputs.
+
+The dataset is split in time order into training, validation, and test
+segments. Training uses a bounded sample for workstation memory; validation
+and test metrics use their full saved splits.
+
+
+4. MODEL COMPARISON AND FINAL TEST RESULTS
+------------------------------------------
+The following comparison is from reports/model_comparison.json. These
+validation results are at the common threshold 0.5 for the initial candidate
+benchmark; they are not the threshold-tuned final test results. Precision,
+recall, and PR-AUC are shown because fraud is rare.
+
+Model / training strategy       PR-AUC   Precision   Recall
+Logistic Regression / none      0.5945    0.0316     0.9662
+Logistic Regression / undersample
+                                0.6404    0.0311     0.9573
+Logistic Regression / SMOTE     0.6354    0.0410     0.9609
+Logistic Regression / SMOTE-Tomek
+                                0.6368    0.0407     0.9609
+Random Forest / none            1.0000    0.9542     1.0000
+XGBoost / none                  0.9983    0.8277     1.0000
+
+The final selected production model is tuned XGBoost. The decision threshold
+0.995 was selected to maximize F2 on the validation split, then evaluated on
+the held-out time-based test split. Do not compare its test values directly
+with the initial 0.5-threshold candidate rows above.
+
+Final held-out test metrics (reports/final_evaluation.json):
+Model:                 XGBoost
+Decision threshold:    0.995
+PR-AUC:                0.99924
+Precision:             0.99104 (99.10%)
+Recall:                0.99351 (99.35%)
+F2 score:              0.99302
+Test rows:             954,393
+
+Confusion matrix (actual rows, predicted columns):
+                              Predicted legitimate   Predicted fraud
+Actual legitimate (TN/FP)             950,349                 36
+Actual fraud (FN/TP)                       26              3,982
+
+Equivalently: TN=950,349, FP=36, FN=26, TP=3,982. These are measurements on
+the saved PaySim synthetic test split, not a guarantee of real-world results.
+
+
+5. LIMITATIONS AND FUTURE WORK
+------------------------------
+Limitations:
+- PaySim is synthetic. High scores on this dataset do not demonstrate the same
+  performance on real customers, institutions, or changing fraud patterns.
+- The 0.995 threshold was selected on validation data to maximize F2. It is an
+  operating choice, not a universal fraud probability cutoff; costs, review
+  capacity, and acceptable customer friction may call for another threshold.
+- Repeated model selection and synthetic patterns can make validation/test
+  performance optimistic. Production performance requires external,
+  representative, independently labeled data.
+- Request counts and latency percentiles are process-local and reset when the
+  API restarts. JSONL transaction storage is a simple local persistence layer,
+  not a production-scale database.
+- The CSV uploader accepts simple comma-separated rows; quoted CSV fields with
+  embedded commas are not a full CSV dialect implementation.
+
+Future work:
+- Validate and recalibrate the model with representative, privacy-approved
+  real-world data and evaluate across time periods and customer segments.
+- Revisit threshold selection using explicit false-positive and false-negative
+  costs plus analyst review capacity; report calibration and operating curves.
+- Add durable database storage, retention controls, authentication,
+  authorization, rate limits, and deployment secrets management.
+- Persist operational metrics and alerts outside the application process, and
+  add drift-triggered review and a documented retraining/rollback process.
+- Add robust CSV parsing, larger-scale batch processing, and accessibility and
+  performance checks on target deployment devices.
+
+
+RUN AND TEST
+============
+
+PROJECT LOCATION
+----------------
+C:\Data Science\ML\ML Project\Project 2\generated\AI Projects store\fraud-detection-mlops
+
+The backend and frontend commands must be run from the project folder, not its parent.
+Open two PowerShell terminals and leave both running while using the website.
+
+
+1. START THE BACKEND
+--------------------
+In PowerShell terminal 1:
+
+cd "C:\Data Science\ML\ML Project\Project 2\generated\AI Projects store\fraud-detection-mlops"
+$env:FRONTEND_ORIGIN = "http://localhost:5173"
+.\backend\start.ps1 -Port 8001
+
+Wait for Uvicorn to report that it is running. Verify the API in a browser:
+
+http://127.0.0.1:8001/health
+
+The response should show status "ok" and model_loaded true.
+
+
+2. START THE FRONTEND
+---------------------
+In PowerShell terminal 2:
+
+cd "C:\Data Science\ML\ML Project\Project 2\generated\AI Projects store\fraud-detection-mlops\frontend"
+$env:VITE_API_BASE_URL = "http://localhost:8001/api/v1"
+npm run dev
+
+Open the address printed by Vite, usually:
+
+http://localhost:5173
+
+Choose "Risk assessment" to score one transaction. You can use the "High-value
+transfer" quick scenario to fill in the suspicious example below automatically.
+
+
+3. SUSPICIOUS TEST TRANSACTION
+-----------------------------
+Transaction type:                 TRANSFER
+Transaction step:                 420
+Amount:                           985000
+Origin balance - before:          985000
+Origin balance - after:           0
+Destination balance - before:     12000
+Destination balance - after:      12000
+
+After entering these values, click "Run risk assessment".
+
+The model will calculate a probability and compare it with the production
+decision threshold (currently 99.50%). A large amount or suspicious-looking
+pattern does not guarantee that the model will classify a transaction as fraud.
+This is a demo input, not a real payment or a guarantee of fraud detection.
+
+
+4. ROUTINE PAYMENT EXAMPLE
+--------------------------
+Transaction type:                 PAYMENT
+Transaction step:                 240
+Amount:                           825
+Origin balance - before:          5200
+Origin balance - after:           4375
+Destination balance - before:     0
+Destination balance - after:      825
+
+The Routine payment quick scenario fills in this example. The model may classify
+it as within expected range, but its output is still a model estimate.
+
+
+TROUBLESHOOTING
+---------------
+If the website does not show model status as online:
+
+1. Confirm both terminals are still running.
+2. Confirm the backend is using port 8001 and the frontend command includes
+   VITE_API_BASE_URL="http://localhost:8001/api/v1".
+3. Visit http://127.0.0.1:8001/health and confirm it returns status "ok".
+4. If you restart the frontend terminal, set VITE_API_BASE_URL again before
+   running npm run dev.
+
+API documentation is available at:
+http://127.0.0.1:8001/docs

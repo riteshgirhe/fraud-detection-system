@@ -1,0 +1,100 @@
+
+# ==========================================
+# Python dependencies, virtual environments
+# ==========================================
+.venv/
+**/.venv/
+venv/
+env/
+ENV/
+node_modules/
+**/node_modules/
+
+# ==========================================
+# Python cache and testing
+# ==========================================
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+**/.pytest_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+# Environment variables and secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# Datasets and generated CSV files
+# ==========================================
+data/raw/
+data/interim/
+data/processed/
+data/predictions/
+**/data/raw/
+**/data/interim/
+**/data/processed/
+**/data/predictions/
+
+# Ignore CSV datasets and exports
+*.csv
+
+# ==========================================
+# Generated experiment outputs
+# ==========================================
+experiments/
+**/experiments/
+mlruns/
+mlflow.db
+mlflow.db-shm
+mlflow.db-wal/
+*.log
+
+# ==========================================
+# Generated machine learning models
+# ==========================================
+*.joblib
+*.pkl
+*.pickle
+*.h5
+*.keras
+*.onnx
+
+# ==========================================
+# Frontend build outputs
+# ==========================================
+frontend/dist/
+**/dist/
+frontend/build/
+**/build/
+
+# ==========================================
+# Generated reports and visualizations
+# ==========================================
+reports/
+artifacts/plots/*
+artifacts/metrics/*
+artifacts/reports/*
+
+# Keep placeholder files in Git
+!artifacts/plots/.gitkeep
+!artifacts/metrics/.gitkeep
+!artifacts/reports/.gitkeep
+
+# ==========================================
+# IDE and operating system files
+# ==========================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# Exclude duplicated nested project
+# ==========================================
+/fraud-detection-mlops/
